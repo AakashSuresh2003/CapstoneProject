@@ -1,0 +1,1152 @@
+openapi: 3.0.0
+info:
+  title: Payroll Management System
+  version: 1.0.0
+servers:
+  - url: https://employee-payroll-jet.vercel.app
+    name: production
+  - url: http://localhost:3500/
+    name: development
+tags:
+  - name: Register
+    description: Register a new user
+  - name: Login
+    description: User login
+  - name: Logout
+    description: User logout
+  - name: Employee
+    description: Employee management
+  - name : Allowance
+    description: Allowance management
+  - name : Net Pay
+    description: Net Pay management
+  - name : Salary (First Create salary records for employees using Net Pay API)
+    description: Salary management
+paths:
+  /api/v1/auth/register:
+    post:
+      tags:
+        - Register
+      summary: Register a new user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  example: "JohnDoe123" 
+                email:
+                  type: string
+                  format: email
+                  example: "johndoe123@example.com"  
+                password:
+                  type: string
+                  format: password
+                  example: "password123"  
+                role:
+                  type: string
+                  enum: [admin, hr, accountant]
+                  example: "admin"  
+              required:
+                - name
+                - email
+                - password
+                - role
+      responses:
+        200:
+          description: User registered successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  _id:
+                    type: string
+                  name:
+                    type: string
+                  email:
+                    type: string
+                  role:
+                    type: string
+                    enum: [admin, hr, accountant]
+        400:
+          description: Bad request
+        500:
+          description: Internal server error
+
+  /api/v1/auth/login:
+    post:
+      tags:
+        - Login
+      summary: User login
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                  format: email
+                  example: "toney3000@gmail.com"
+                password:
+                  type: string
+                  format: password
+                  example: "Aakash"
+              required:
+                - email
+                - password
+      responses:
+        200:
+          description: User logged in successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  _id:
+                    type: string
+                  name:
+                    type: string
+                  email:
+                    type: string
+                  role:
+                    type: string
+                    enum: [admin, hr, accountant]
+                  token:
+                    type: string
+                    description: JWT token for authentication
+        404:
+          description: User does not exist
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  Message:
+                    type: string
+                    example: "User does not exist"
+        500:
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Internal server error"
+  /api/v1/auth/logout:
+    get:
+      tags: [Logout]
+      summary: User logout
+      responses:
+        200:
+          description: User logged out successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  Message:
+                    type: string
+                    example: "Logged Out"
+        500:
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Internal server error"
+  
+  /api/v1/employee/getall:
+    get:
+      tags: [Employee]
+      summary: Get all employees
+      security:
+        - bearerAuth: []
+      responses:
+        200:
+          description: A list of employees
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    _id:
+                      type: string
+                    name:
+                      type: string
+                    email:
+                      type: string
+                      format: email
+                    role:
+                      type: string
+                      enum: [admin, hr, accountant, employee]
+        404:
+          description: No Employees found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  Message:
+                    type: string
+                    example: "No Employees found"
+        500:
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Internal server error"
+
+  /api/v1/employee/get/{id}:
+    get:
+      tags: [Employee]
+      summary: Get an employee by ID
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: The ID of the employee to retrieve
+          schema:
+            type: string
+      responses:
+        200:
+          description: Employee data
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  _id:
+                    type: string
+                  name:
+                    type: string
+                  email:
+                    type: string
+                    format: email
+                  role:
+                    type: string
+                    enum: [admin, hr, accountant, employee]
+        404:
+          description: No Employee found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  Message:
+                    type: string
+                    example: "No Employee found"
+        500:
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Internal server error"
+  
+  /api/v1/employee/create:
+    post:
+      tags: [Employee]
+      summary: Create a new employee
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  example: "John Doe"
+                email:
+                  type: string
+                  format: email
+                  example: "john.doe@example.com"
+                emp_id:
+                  type: string
+                  example: "EMP123456"
+                Role:
+                  type: object
+                  properties:
+                    roleName:
+                      type: string
+                      example: "HR"
+                    emp_grade:
+                      type: string
+                      example: "1"
+                base_pay:
+                  type: number
+                  example: 50000
+              required:
+                - name
+                - email
+                - emp_id
+                - Role
+                - base_pay
+      responses:
+        201:
+          description: Employee created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Employee created successfully"
+                  employee:
+                    type: object
+                    properties:
+                      _id:
+                        type: string
+                      name:
+                        type: string
+                      email:
+                        type: string
+                        format: email
+                      emp_id:
+                        type: string
+                      Role:
+                        type: object
+                        properties:
+                          roleName:
+                            type: string
+                          emp_grade:
+                            type: string
+                      base_pay:
+                        type: number
+        403:
+          description: Employee already exists
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  Message:
+                    type: string
+                    example: "Employee already exists"
+        500:
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Internal server error"
+
+  /api/v1/employee/update/{id}:
+    put:
+      tags: [Employee]
+      summary: Update an employee by ID
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+          description: The ID of the employee to update
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  example: "John Doe"
+                email:
+                  type: string
+                  format: email
+                  example: "john.doe@example.com"
+                Role:
+                  type: object
+                  properties:
+                    roleName:
+                      type: string
+                      example: "HR"
+                    emp_grade:
+                      type: string
+                      example: "1"
+                base_pay:
+                  type: number
+                  example: 50000
+              required:
+                - name
+      responses:
+        200:
+          description: Employee updated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  Message:
+                    type: string
+                    example: "Employee updated successfully"
+        404:
+          description: Employee not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  Message:
+                    type: string
+                    example: "Employee not found"
+        500:
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Internal server error"
+  
+  /api/v1/employee/delete/{id}:
+    delete:
+      tags: [Employee]
+      summary: Delete an employee by ID
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+          description: The ID of the employee to delete
+      responses:
+        200:
+          description: Employee deleted successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Successfully Deleted Employee"
+                  deleteEmployee:
+                    type: object
+                    properties:
+                      _id:
+                        type: string
+                        example: "6094b4cc1e8a253da7a440f0"
+                      name:
+                        type: string
+                        example: "John Doe"
+                      email:
+                        type: string
+                        example: "john.doe@example.com"
+                      Role:
+                        type: object
+                        properties:
+                          roleName:
+                            type: string
+                            example: "admin"
+                          emp_grade:
+                            type: string
+                            example: "A1"
+                      base_pay:
+                        type: number
+                        example: 50000
+        404:
+          description: Employee not found or unauthorized to delete
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Employee not found or unauthorized to delete"
+        500:
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Internal Server Error"
+
+  /api/v1/employee/createAllowence:
+    post:
+      tags: 
+        - Allowance
+      summary: Create a new allowance percentage  # Corrected indentation
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                grade:
+                  type: string
+                  example: "1"
+                HRA:
+                  type: number
+                  example: 0.4
+                DA:
+                  type: number
+                  example: 0.35
+                MA:
+                  type: number
+                  example: 0.25
+              required:
+                - grade
+                - HRA
+                - DA
+                - MA
+      responses:
+        201:
+          description: Allowance created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Allowance created successfully"
+                  newAllowence:
+                    type: object
+                    properties:
+                      _id:
+                        type: string
+                        example: "6094b4cc1e8a253da7a440f0"
+                      grade:
+                        type: string
+                        example: "1"
+                      HRA:
+                        type: number
+                        example: 0.4
+                      DA:
+                        type: number
+                        example: 0.35
+                      MA:
+                        type: number
+                        example: 0.25
+        400:
+          description: Allowance already exists
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Allowance already exists"
+        500:
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Internal Server Error"
+  
+  /api/v1/employee/getAllowence:
+    get:
+      tags: [Allowance]
+      summary: Get allowance percentages
+      security:
+        - bearerAuth: []
+      responses:
+        200:
+          description: List of allowance percentages retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    _id:
+                      type: string
+                      example: "6094b4cc1e8a253da7a440f0"
+                    grade:
+                      type: string
+                      example: "A1"
+                    percentage:
+                      type: number
+                      example: 10
+        404:
+          description: Allowance percentages not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Allowance percentage not found"
+        500:
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Internal Server Error"
+                  error:
+                    type: string
+                    example: "Error message details..."
+  
+  /api/v1/employee/updateAllowence/{id}:
+    put:
+      tags: [Allowance]
+      summary: Update an allowance percentage by ID
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+          description: The ID of the allowance to update
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                HRA:
+                  type: number
+                  example: 0.45
+                DA:
+                  type: number
+                  example: 0.4
+                MA:
+                  type: number
+                  example: 0.3
+              required:
+                - HRA
+                - DA
+                - MA
+      responses:
+        200:
+          description: Allowance updated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  Message:
+                    type: string
+                    example: "Allowance updated successfully"
+        404:
+          description: Allowance not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Allowance not found"
+        500:
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Internal Server Error"
+  
+  /api/v1/employee/calculate/{id}:
+    get:
+      tags: [Salary (Per Day)]
+      summary: Calculate and save salary components for an employee by ID
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+          description: The ID of the employee to calculate salary for
+      responses:
+        200:
+          description: Salary calculated and saved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Salary calculated and saved successfully"
+                  salary:
+                    type: object
+                    properties:
+                      _id:
+                        type: string
+                      employee_id:
+                        type: string
+                      HRA:
+                        type: number
+                      DA:
+                        type: number
+                      MA:
+                        type: number
+                      perDaySalary:
+                        type: string
+        400:
+          description: Salary for this employee already exists
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Salary for this employee already exists"
+        404:
+          description: Employee not found or grade not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Employee not found"
+        500:
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Internal Server Error"
+  
+  /api/v1/hr/create-salary/{id}:
+    post:
+      tags: [Net Pay]
+      summary: Create a salary record for an employee
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+          description: The ID of the employee for whom to create the salary record
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                workingDays:
+                  type: number
+                  example: 20
+                  minimum: 1
+                  maximum: 24
+                month:
+                  type: string
+                  example: "June"
+                year:
+                  type: number
+                  example: 2024
+              required:
+                - workingDays
+                - month
+                - year
+      responses:
+        201:
+          description: Salary created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Salary created successfully"
+                  inHand:
+                    type: object
+                    properties:
+                      employee_id:
+                        type: string
+                        example: "60d5e7a42a4c5f0015f43e6f"
+                      workingDays:
+                        type: number
+                        example: 20
+                      inHandSalary:
+                        type: number
+                        example: 60000
+                      month:
+                        type: string
+                        example: "June"
+                      year:
+                        type: number
+                        example: 2024
+        400:
+          description: Bad request (e.g., missing or invalid input)
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Working days are required"
+        403:
+          description: Salary already exists for the specified employee and month
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Salary already exists"
+        404:
+          description: Employee not found or salary record not found for the employee
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "No Employee found"
+                    name: "February"
+                    year: 2023
+        500:
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Internal Server Error"
+  
+  /api/v1/hr/update-salary/{id}:
+    put:
+      tags:
+        - Salary (Per Day)
+      summary: Update salary components for an employee by ID
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+          description: The ID of the employee to update salary for
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                workingDays:
+                  type: number
+                  example: 20
+                  minimum: 1
+                  maximum: 24
+                month:
+                  type: string
+                  example: "June"
+              required:
+                - workingDays
+                - month
+      responses:
+        '200':
+          description: Salary updated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  Message:
+                    type: string
+                    example: "Inhand Salary Updated"
+        '400':
+          description: Bad request (e.g., missing or invalid input)
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Working days are required"
+        '403':
+          description: Forbidden (user does not have HR role)
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Unauthorized: Only HR can update salary"
+        '404':
+          description: Employee not found or salary record not found for the employee
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "No Employee found or Salary record not found"
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Internal Server Error"
+  
+  /api/v1/fa/generate-salaries:
+    post:
+      tags:
+        - Salary (First Create salary records for employees using Net Pay API)
+      summary: Generate and save pay slips for employees based on existing salary records
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Successfully generated and saved pay slips
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Salaries calculated and saved successfully"
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Internal server error"
+  /api/v1/fa/salaries:
+    get:
+      tags:
+        - Salary (First Create salary records for employees using Net Pay API)
+      summary: Retrieve all salary records (pay slips)
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: A list of salary records (pay slips)
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    _id:
+                      type: string
+                      example: "60d5e7a42a4c5f0015f43e6f"
+                    employee_id:
+                      type: string
+                      example: "60d5e7a42a4c5f0015f43e6f"
+                    workingDays:
+                      type: number
+                      example: 20
+                    inHandSalary:
+                      type: number
+                      example: 60000
+                    month:
+                      type: string
+                      example: "June"
+                    year:
+                      type: number
+                      example: 2024
+        '404':
+          description: No salary records found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  Message:
+                    type: string
+                    example: "Salaries not found"
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Internal Server Error"
+  
+  /api/v1/fa/salaries/{id}:
+    get:
+      tags:
+        - Salary (First Create salary records for employees using Net Pay API)
+      summary: Retrieve salary details for a specific employee by ID
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+          description: The ID of the employee for whom to retrieve salary details
+      responses:
+        '200':
+          description: Salary details retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  _id:
+                    type: string
+                    example: "60d5e7a42a4c5f0015f43e6f"
+                  employee_id:
+                    type: string
+                    example: "60d5e7a42a4c5f0015f43e6f"
+                  workingDays:
+                    type: number
+                    example: 20
+                  inHandSalary:
+                    type: number
+                    example: 60000
+                  month:
+                    type: string
+                    example: "June"
+                  year:
+                    type: number
+                    example: 2024
+        '400':
+          description: Bad request (e.g., missing or invalid input)
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Employee ID is required"
+        '404':
+          description: Salary not found for the specified employee ID
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Salary not found for the given Employee ID"
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Internal Server Error"
+  
+  /api/v1/fa/total-salaries:
+    get:
+      tags:
+        - Salary (First Create salary records for employees using Net Pay API)
+      summary: Get total net pay of all employees
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Total net pay retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  totalSalary:
+                    type: number
+                    example: 1200000
+        '404':
+          description: No salaries found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "No Salaries found"
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Internal Server Error"
