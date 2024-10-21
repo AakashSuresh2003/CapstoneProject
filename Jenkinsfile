@@ -41,8 +41,8 @@ pipeline {
             steps {
                 sshagent(['newpvtkey']) {
                     sh '''
-                        scp -o StrictHostKeyChecking=no docker-compose.yaml ubuntu@13.232.178.200:/tmp/
-                        ssh -v -o StrictHostKeyChecking=no ubuntu@13.232.178.200 '
+                        scp -o StrictHostKeyChecking=no docker-compose.yaml ubuntu@3.110.164.38:/tmp/
+                        ssh -v -o StrictHostKeyChecking=no ubuntu@3.110.164.38 '
                             sudo mv /tmp/docker-compose.yaml /home/ &&
                             sudo docker compose -f /home/docker-compose.yaml up -d
                         '
